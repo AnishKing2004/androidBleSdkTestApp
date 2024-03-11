@@ -557,96 +557,120 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for listExercisesButton
         listExercisesButton.setOnClickListener {
+            // Check if listExercisesDisposable is disposed or not initialized
             val isDisposed = listExercisesDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Clear exerciseEntries list
                 exerciseEntries.clear()
+                // Start listing exercises
                 listExercisesDisposable = api.listExercises(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarExerciseEntry: PolarExerciseEntry ->
-                            Log.d(TAG, "next: ${polarExerciseEntry.date} path: ${polarExerciseEntry.path} id: ${polarExerciseEntry.identifier}")
-                            exerciseEntries.add(polarExerciseEntry)
-                        },
-                        { error: Throwable ->
-                            val errorDescription = "Failed to list exercises. Reason: $error"
-                            Log.w(TAG, errorDescription)
-                            showSnackbar(errorDescription)
-                        },
-                        {
-                            val completedOk = "Exercise listing completed. Listed ${exerciseEntries.count()} exercises on device $deviceId."
-                            Log.d(TAG, completedOk)
-                            showSnackbar(completedOk)
-                        }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { polarExerciseEntry: PolarExerciseEntry ->
+                                    // Log exercise entry information and add it to exerciseEntries list
+                                    Log.d(TAG, "next: ${polarExerciseEntry.date} path: ${polarExerciseEntry.path} id: ${polarExerciseEntry.identifier}")
+                                    exerciseEntries.add(polarExerciseEntry)
+                                },
+                                { error: Throwable ->
+                                    // Log and show error message if listing exercises failed
+                                    val errorDescription = "Failed to list exercises. Reason: $error"
+                                    Log.w(TAG, errorDescription)
+                                    showSnackbar(errorDescription)
+                                },
+                                {
+                                    // Log and show completion message with the count of listed exercises
+                                    val completedOk = "Exercise listing completed. Listed ${exerciseEntries.count()} exercises on device $deviceId."
+                                    Log.d(TAG, completedOk)
+                                    showSnackbar(completedOk)
+                                }
+                        )
             } else {
+                // Log if listing of exercise entries is already in progress
                 Log.d(TAG, "Listing of exercise entries is in progress at the moment.")
             }
         }
 
+        // Set OnClickListener for fetchExerciseButton
         fetchExerciseButton.setOnClickListener {
+            // Check if fetchExerciseDisposable is disposed or not initialized
             val isDisposed = fetchExerciseDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Check if there are exercise entries available
                 if (exerciseEntries.isNotEmpty()) {
+                    // Toggle button state to indicate reading exercise
                     toggleButtonDown(fetchExerciseButton, R.string.reading_exercise)
-                    // just for the example purpose read the entry which is first on the exerciseEntries list
+                    // Fetch the first exercise entry from the list
                     fetchExerciseDisposable = api.fetchExercise(deviceId, exerciseEntries.first())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doFinally {
-                            toggleButtonUp(fetchExerciseButton, R.string.read_exercise)
-                        }
-                        .subscribe(
-                            { polarExerciseData: PolarExerciseData ->
-                                Log.d(TAG, "Exercise data count: ${polarExerciseData.hrSamples.size} samples: ${polarExerciseData.hrSamples}")
-                                var onComplete = "Exercise has ${polarExerciseData.hrSamples.size} hr samples.\n\n"
-                                if (polarExerciseData.hrSamples.size >= 3)
-                                    onComplete += "HR data {${polarExerciseData.hrSamples[0]}, ${polarExerciseData.hrSamples[1]}, ${polarExerciseData.hrSamples[2]} ...}"
-                                showDialog("Exercise data read", onComplete)
-                            },
-                            { error: Throwable ->
-                                val errorDescription = "Failed to read exercise. Reason: $error"
-                                Log.e(TAG, errorDescription)
-                                showSnackbar(errorDescription)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doFinally {
+                                // Toggle button state back to normal after reading exercise
+                                toggleButtonUp(fetchExerciseButton, R.string.read_exercise)
                             }
-                        )
+                            .subscribe(
+                                    { polarExerciseData: PolarExerciseData ->
+                                        // Log exercise data and show it in a dialog
+                                        Log.d(TAG, "Exercise data count: ${polarExerciseData.hrSamples.size} samples: ${polarExerciseData.hrSamples}")
+                                        var onComplete = "Exercise has ${polarExerciseData.hrSamples.size} hr samples.\n\n"
+                                        if (polarExerciseData.hrSamples.size >= 3)
+                                            onComplete += "HR data {${polarExerciseData.hrSamples[0]}, ${polarExerciseData.hrSamples[1]}, ${polarExerciseData.hrSamples[2]} ...}"
+                                        showDialog("Exercise data read", onComplete)
+                                    },
+                                    { error: Throwable ->
+                                        // Log and show error message if reading exercise failed
+                                        val errorDescription = "Failed to read exercise. Reason: $error"
+                                        Log.e(TAG, errorDescription)
+                                        showSnackbar(errorDescription)
+                                    }
+                            )
                 } else {
+                    // Show dialog message if no exercise entries available
                     val helpTitle = "Reading exercise is not possible"
-                    val helpMessage = "Either device has no exercise entries or you haven't list them yet. Please, create an exercise or use the \"LIST EXERCISES\" " +
-                            "button to list exercises on device."
+                    val helpMessage = "Either device has no exercise entries or you haven't listed them yet. Please, create an exercise or use the \"LIST EXERCISES\" button to list exercises on the device."
                     showDialog(helpTitle, helpMessage)
                 }
             } else {
+                // Log if reading of exercise is already in progress
                 Log.d(TAG, "Reading of exercise is in progress at the moment.")
             }
         }
 
+        // Set OnClickListener for removeExerciseButton
         removeExerciseButton.setOnClickListener {
+            // Check if removeExerciseDisposable is disposed or not initialized
             val isDisposed = removeExerciseDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Check if there are exercise entries available
                 if (exerciseEntries.isNotEmpty()) {
-                    // just for the example purpose remove the entry which is first on the exerciseEntries list
+                    // Remove the first entry from the list
                     val entry = exerciseEntries.first()
+                    // Start removing the exercise
                     removeExerciseDisposable = api.removeExercise(deviceId, entry)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                            {
-                                exerciseEntries.remove(entry)
-                                val exerciseRemovedOk = "Exercise with id:${entry.identifier} successfully removed"
-                                Log.d(TAG, exerciseRemovedOk)
-                                showSnackbar(exerciseRemovedOk)
-                            },
-                            { error: Throwable ->
-                                val exerciseRemoveFailed = "Exercise with id:${entry.identifier} remove failed: $error"
-                                Log.w(TAG, exerciseRemoveFailed)
-                                showSnackbar(exerciseRemoveFailed)
-                            }
-                        )
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    {
+                                        // Remove the entry from exerciseEntries list and log success message
+                                        exerciseEntries.remove(entry)
+                                        val exerciseRemovedOk = "Exercise with id:${entry.identifier} successfully removed"
+                                        Log.d(TAG, exerciseRemovedOk)
+                                        showSnackbar(exerciseRemovedOk)
+                                    },
+                                    { error: Throwable ->
+                                        // Log and show error message if removing exercise failed
+                                        val exerciseRemoveFailed = "Exercise with id:${entry.identifier} remove failed: $error"
+                                        Log.w(TAG, exerciseRemoveFailed)
+                                        showSnackbar(exerciseRemoveFailed)
+                                    }
+                            )
                 } else {
+                    // Show dialog message if no exercise entries available
                     val helpTitle = "Removing exercise is not possible"
-                    val helpMessage = "Either device has no exercise entries or you haven't list them yet. Please, create an exercise or use the \"LIST EXERCISES\" button to list exercises on device"
+                    val helpMessage = "Either the device has no exercise entries or you haven't listed them yet. Please, create an exercise or use the \"LIST EXERCISES\" button to list exercises on the device."
                     showDialog(helpTitle, helpMessage)
                 }
             } else {
+                // Log if removing of exercise is already in progress
                 Log.d(TAG, "Removing of exercise is in progress at the moment.")
             }
         }
