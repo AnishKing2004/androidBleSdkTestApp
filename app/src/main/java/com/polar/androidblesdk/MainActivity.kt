@@ -200,21 +200,33 @@ class MainActivity : AppCompatActivity() {
         })
 
         broadcastButton.setOnClickListener {
+            // Check if broadcastDisposable is initialized or disposed
             if (!this::broadcastDisposable.isInitialized || broadcastDisposable.isDisposed) {
+                // Toggle button state to indicate listening
                 toggleButtonDown(broadcastButton, R.string.listening_broadcast)
+
+                // Start listening for Polar HR broadcasts
                 broadcastDisposable = api.startListenForPolarHrBroadcasts(null)
-                    .subscribe(
-                        { polarBroadcastData: PolarHrBroadcastData ->
-                            Log.d(TAG, "HR BROADCAST ${polarBroadcastData.polarDeviceInfo.deviceId} HR: ${polarBroadcastData.hr} batt: ${polarBroadcastData.batteryStatus}")
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(broadcastButton, R.string.listen_broadcast)
-                            Log.e(TAG, "Broadcast listener failed. Reason $error")
-                        },
-                        { Log.d(TAG, "complete") }
-                    )
+                        .subscribe(
+                                { polarBroadcastData: PolarHrBroadcastData ->
+                                    // Log HR broadcast data
+                                    Log.d(TAG, "HR BROADCAST ${polarBroadcastData.polarDeviceInfo.deviceId} HR: ${polarBroadcastData.hr} batt: ${polarBroadcastData.batteryStatus}")
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate not listening
+                                    toggleButtonUp(broadcastButton, R.string.listen_broadcast)
+                                    // Log error if broadcast listener failed
+                                    Log.e(TAG, "Broadcast listener failed. Reason $error")
+                                },
+                                {
+                                    // Log completion
+                                    Log.d(TAG, "complete")
+                                }
+                        )
             } else {
+                // Toggle button state to indicate not listening
                 toggleButtonUp(broadcastButton, R.string.listen_broadcast)
+                // Dispose the broadcastDisposable
                 broadcastDisposable.dispose()
             }
         }
