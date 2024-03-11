@@ -1024,23 +1024,24 @@ class MainActivity : AppCompatActivity() {
 
         var enableSdkModelLedAnimation = false
         var enablePpiModeLedAnimation = false
+        // Set OnClickListener for changeSdkModeLedAnimationStatusButton
         changeSdkModeLedAnimationStatusButton.setOnClickListener {
             api.setLedConfig(deviceId, LedConfig(
-                sdkModeLedEnabled = enableSdkModelLedAnimation,
-                ppiModeLedEnabled = !enablePpiModeLedAnimation))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        Log.d(TAG, "SdkModeledAnimationEnabled set to $enableSdkModelLedAnimation")
-                        showToast("SdkModeLedAnimationEnabled set to $enableSdkModelLedAnimation")
-                        changeSdkModeLedAnimationStatusButton.text =
-                            if (enableSdkModelLedAnimation) getString(R.string.disable_sdk_mode_led_animation) else getString(
-                                R.string.enable_sdk_mode_led_animation
-                            )
-                        enableSdkModelLedAnimation = !enableSdkModelLedAnimation
-                    },
-                    { error: Throwable -> Log.e(TAG, "changeSdkModeLedAnimationStatus failed: $error") }
-                )
+                    sdkModeLedEnabled = enableSdkModelLedAnimation,
+                    ppiModeLedEnabled = !enablePpiModeLedAnimation))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            {
+                                Log.d(TAG, "SdkModeledAnimationEnabled set to $enableSdkModelLedAnimation")
+                                showToast("SdkModeLedAnimationEnabled set to $enableSdkModelLedAnimation")
+                                changeSdkModeLedAnimationStatusButton.text =
+                                        if (enableSdkModelLedAnimation) getString(R.string.disable_sdk_mode_led_animation) else getString(
+                                                R.string.enable_sdk_mode_led_animation
+                                        )
+                                enableSdkModelLedAnimation = !enableSdkModelLedAnimation
+                            },
+                            { error: Throwable -> Log.e(TAG, "changeSdkModeLedAnimationStatus failed: $error") }
+                    )
         }
 
         changePpiModeLedAnimationStatusButton.setOnClickListener {
