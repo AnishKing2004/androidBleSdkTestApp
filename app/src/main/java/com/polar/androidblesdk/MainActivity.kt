@@ -963,46 +963,49 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for toggleSdkModeButton
         toggleSdkModeButton.setOnClickListener {
             toggleSdkModeButton.isEnabled = false
             if (!sdkModeEnabledStatus) {
+                // Enable SDK mode
                 sdkModeEnableDisposable = api.enableSDKMode(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            Log.d(TAG, "SDK mode enabled")
-                            // at this point dispose all existing streams. SDK mode enable command
-                            // stops all the streams but client is not informed. This is workaround
-                            // for the bug.
-                            disposeAllStreams()
-                            toggleSdkModeButton.isEnabled = true
-                            sdkModeEnabledStatus = true
-                            toggleButtonDown(toggleSdkModeButton, R.string.disable_sdk_mode)
-                        },
-                        { error ->
-                            toggleSdkModeButton.isEnabled = true
-                            val errorString = "SDK mode enable failed: $error"
-                            showToast(errorString)
-                            Log.e(TAG, errorString)
-                        }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                {
+                                    Log.d(TAG, "SDK mode enabled")
+                                    // Dispose all existing streams. SDK mode enable command
+                                    // stops all the streams but the client is not informed. This is a workaround
+                                    // for the bug.
+                                    disposeAllStreams()
+                                    toggleSdkModeButton.isEnabled = true
+                                    sdkModeEnabledStatus = true
+                                    toggleButtonDown(toggleSdkModeButton, R.string.disable_sdk_mode)
+                                },
+                                { error ->
+                                    toggleSdkModeButton.isEnabled = true
+                                    val errorString = "SDK mode enable failed: $error"
+                                    showToast(errorString)
+                                    Log.e(TAG, errorString)
+                                }
+                        )
             } else {
+                // Disable SDK mode
                 sdkModeEnableDisposable = api.disableSDKMode(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            Log.d(TAG, "SDK mode disabled")
-                            toggleSdkModeButton.isEnabled = true
-                            sdkModeEnabledStatus = false
-                            toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
-                        },
-                        { error ->
-                            toggleSdkModeButton.isEnabled = true
-                            val errorString = "SDK mode disable failed: $error"
-                            showToast(errorString)
-                            Log.e(TAG, errorString)
-                        }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                {
+                                    Log.d(TAG, "SDK mode disabled")
+                                    toggleSdkModeButton.isEnabled = true
+                                    sdkModeEnabledStatus = false
+                                    toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
+                                },
+                                { error ->
+                                    toggleSdkModeButton.isEnabled = true
+                                    val errorString = "SDK mode disable failed: $error"
+                                    showToast(errorString)
+                                    Log.e(TAG, errorString)
+                                }
+                        )
             }
         }
 
