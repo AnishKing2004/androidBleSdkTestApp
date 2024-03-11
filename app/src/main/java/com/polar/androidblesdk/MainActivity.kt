@@ -888,75 +888,77 @@ class MainActivity : AppCompatActivity() {
                     )
         }
 
+        // Set OnClickListener for downloadRecordingButton
         downloadRecordingButton.setOnClickListener {
-            //Example of one offline recording download
-            //NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
-            Log.d(TAG, "Searching to recording to download... ")
-            //Get first entry for testing download
+            // Example of downloading one offline recording
+            // NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
+            Log.d(TAG, "Searching for recording to download... ")
+            // Get the first entry for testing download
             val offlineRecEntry = entryCache[deviceId]?.firstOrNull()
             offlineRecEntry?.let { offlineEntry ->
                 try {
-                    //Using a secret key managed by your own.
-                    //  You can use a different key to each start recording calls.
-                    //  When using key at start recording, it is also needed for the recording download, otherwise could not be decrypted
+                    // Using a secret key managed by your own.
+                    // You can use a different key for each start recording call.
+                    // When using a key at start recording, it is also needed for the recording download, otherwise could not be decrypted
                     val yourSecret = PolarRecordingSecret(
-                        byteArrayOf(
-                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
-                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-                        )
+                            byteArrayOf(
+                                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+                                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+                            )
                     )
+                    // Download the offline recording
                     api.getOfflineRecord(deviceId, offlineEntry, yourSecret)
-                        //Not using a secret key
-                        //api.getOfflineRecord(deviceId, offlineEntry)
-                        .subscribe(
-                            {
-                                Log.d(TAG, "Recording ${offlineEntry.path} downloaded. Size: ${offlineEntry.size}")
-                                when (it) {
-                                    is PolarOfflineRecordingData.AccOfflineRecording -> {
-                                        Log.d(TAG, "ACC Recording started at ${it.startTime}")
-                                        for (sample in it.data.samples) {
-                                            Log.d(TAG, "ACC data: time: ${sample.timeStamp} X: ${sample.x} Y: ${sample.y} Z: ${sample.z}")
+                            // Not using a secret key
+                            // api.getOfflineRecord(deviceId, offlineEntry)
+                            .subscribe(
+                                    { offlineRecordingData ->
+                                        Log.d(TAG, "Recording ${offlineEntry.path} downloaded. Size: ${offlineEntry.size}")
+                                        when (offlineRecordingData) {
+                                            is PolarOfflineRecordingData.AccOfflineRecording -> {
+                                                Log.d(TAG, "ACC Recording started at ${offlineRecordingData.startTime}")
+                                                for (sample in offlineRecordingData.data.samples) {
+                                                    Log.d(TAG, "ACC data: time: ${sample.timeStamp} X: ${sample.x} Y: ${sample.y} Z: ${sample.z}")
+                                                }
+                                            }
+                                            // Other recording types can be handled similarly
+                                            else -> {
+                                                Log.d(TAG, "Recording type is not yet implemented")
+                                            }
                                         }
-                                    }
-//                      is PolarOfflineRecordingData.GyroOfflineRecording -> { }
-//                      is PolarOfflineRecordingData.MagOfflineRecording -> { }
-//                      ...
-                                    else -> {
-                                        Log.d(TAG, "Recording type is not yet implemented")
-                                    }
-                                }
-                            },
-                            { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                        )
+                                    },
+                                    { throwable: Throwable -> Log.e(TAG, "Recording download failed: $throwable") }
+                            )
                 } catch (e: Exception) {
-                    Log.e(TAG, "Get offline recording fetch failed on entry ...", e)
+                    Log.e(TAG, "Failed to fetch offline recording on entry: $offlineEntry", e)
                 }
             }
         }
 
+        // Set OnClickListener for deleteRecordingButton
         deleteRecordingButton.setOnClickListener {
-            //Example of one offline recording deletion
-            //NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
-            Log.d(TAG, "Searching to recording to delete... ")
-            //Get first entry for testing deletion
+            // Example of deleting one offline recording
+            // NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
+            Log.d(TAG, "Searching for recording to delete... ")
+            // Get the first entry for testing deletion
             val offlineRecEntry = entryCache[deviceId]?.firstOrNull()
             offlineRecEntry?.let { offlineEntry ->
                 try {
+                    // Remove the offline recording
                     api.removeOfflineRecord(deviceId, offlineEntry)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                            {
-                                Log.d(TAG, "Recording file deleted")
-                            },
-                            { error ->
-                                val errorString = "Recording file deletion failed: $error"
-                                showToast(errorString)
-                                Log.e(TAG, errorString)
-                            }
-                        )
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    {
+                                        Log.d(TAG, "Recording file deleted")
+                                    },
+                                    { error ->
+                                        val errorString = "Failed to delete recording file: $error"
+                                        showToast(errorString)
+                                        Log.e(TAG, errorString)
+                                    }
+                            )
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "Delete offline recording failed on entry ...", e)
+                    Log.e(TAG, "Failed to delete offline recording on entry: $offlineEntry", e)
                 }
             }
         }
