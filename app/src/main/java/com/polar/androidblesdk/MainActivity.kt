@@ -784,35 +784,41 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for setTimeButton
         setTimeButton.setOnClickListener {
+            // Get the current calendar instance
             val calendar = Calendar.getInstance()
+            // Set the calendar time to current date
             calendar.time = Date()
+            // Set local time on the device
             api.setLocalTime(deviceId, calendar)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        val timeSetString = "time ${calendar.time} set to device"
-                        Log.d(TAG, timeSetString)
-                        showToast(timeSetString)
-                    },
-                    { error: Throwable -> Log.e(TAG, "set time failed: $error") }
-                )
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            {
+                                // Log and show message for successful time set
+                                val timeSetString = "Time ${calendar.time} set to device"
+                                Log.d(TAG, timeSetString)
+                                showToast(timeSetString)
+                            },
+                            { error: Throwable -> Log.e(TAG, "Set time failed: $error") }
+                    )
         }
 
+        // Set OnClickListener for getTimeButton
         getTimeButton.setOnClickListener {
+            // Get local time from the device
             api.getLocalTime(deviceId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { calendar ->
-                        val timeGetString = "${calendar.time} read from the device"
-                        Log.d(TAG, timeGetString)
-                        showToast(timeGetString)
-
-                    },
-                    { error: Throwable -> Log.e(TAG, "get time failed: $error") }
-                )
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            { calendar ->
+                                // Log and show message for successfully getting time
+                                val timeGetString = "${calendar.time} read from the device"
+                                Log.d(TAG, timeGetString)
+                                showToast(timeGetString)
+                            },
+                            { error: Throwable -> Log.e(TAG, "Get time failed: $error") }
+                    )
         }
-
 
         listRecordingsButton.setOnClickListener {
             api.listOfflineRecordings(deviceId)
