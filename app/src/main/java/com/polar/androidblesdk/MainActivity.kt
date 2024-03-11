@@ -847,40 +847,45 @@ class MainActivity : AppCompatActivity() {
                     )
         }
 
+        // Set OnClickListener for startRecordingButton
         startRecordingButton.setOnClickListener {
-            //Example of starting ACC offline recording
+            // Example of starting ACC offline recording
             Log.d(TAG, "Starts ACC recording")
+            // Set ACC recording settings
             val settings: MutableMap<PolarSensorSetting.SettingType, Int> = mutableMapOf()
             settings[PolarSensorSetting.SettingType.SAMPLE_RATE] = 52
             settings[PolarSensorSetting.SettingType.RESOLUTION] = 16
             settings[PolarSensorSetting.SettingType.RANGE] = 8
             settings[PolarSensorSetting.SettingType.CHANNELS] = 3
-            //Using a secret key managed by your own.
-            //  You can use a different key to each start recording calls.
-            //  When using key at start recording, it is also needed for the recording download, otherwise could not be decrypted
+            // Using a secret key managed by your own.
+            // You can use a different key for each start recording call.
+            // When using a key at start recording, it is also needed for the recording download, otherwise could not be decrypted
             val yourSecret = PolarRecordingSecret(
-                byteArrayOf(
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-                )
+                    byteArrayOf(
+                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+                    )
             )
+            // Start ACC offline recording
             api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()), yourSecret)
-                //Without a secret key
-                //api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()))
-                .subscribe(
-                    { Log.d(TAG, "start offline recording completed") },
-                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                )
+                    // Without a secret key
+                    // api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()))
+                    .subscribe(
+                            { Log.d(TAG, "Start offline recording completed") },
+                            { throwable: Throwable -> Log.e(TAG, "Start offline recording failed: $throwable") }
+                    )
         }
 
+        // Set OnClickListener for stopRecordingButton
         stopRecordingButton.setOnClickListener {
-            //Example of stopping ACC offline recording
+            // Example of stopping ACC offline recording
             Log.d(TAG, "Stops ACC recording")
+            // Stop ACC offline recording
             api.stopOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-                .subscribe(
-                    { Log.d(TAG, "stop offline recording completed") },
-                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                )
+                    .subscribe(
+                            { Log.d(TAG, "Stop offline recording completed") },
+                            { throwable: Throwable -> Log.e(TAG, "Stop offline recording failed: $throwable") }
+                    )
         }
 
         downloadRecordingButton.setOnClickListener {
