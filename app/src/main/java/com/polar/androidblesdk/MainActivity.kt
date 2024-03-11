@@ -231,20 +231,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set the text of the connectButton to indicate connecting to the specified device
         connectButton.text = getString(R.string.connect_to_device, deviceId)
+
+// Set an OnClickListener for the connectButton
         connectButton.setOnClickListener {
             try {
+                // Check if device is already connected
                 if (deviceConnected) {
+                    // If connected, disconnect from the device
                     api.disconnectFromDevice(deviceId)
                 } else {
+                    // If not connected, attempt to connect to the device
                     api.connectToDevice(deviceId)
                 }
             } catch (polarInvalidArgument: PolarInvalidArgument) {
+                // Handle PolarInvalidArgument exception if connection or disconnection fails
                 val attempt = if (deviceConnected) {
-                    "disconnect"
+                    "disconnect" // If trying to disconnect
                 } else {
-                    "connect"
+                    "connect" // If trying to connect
                 }
+                // Log the failure reason
                 Log.e(TAG, "Failed to $attempt. Reason $polarInvalidArgument ")
             }
         }
