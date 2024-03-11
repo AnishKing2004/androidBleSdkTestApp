@@ -375,62 +375,78 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for accButton
         accButton.setOnClickListener {
+            // Check if accDisposable is disposed or not initialized
             val isDisposed = accDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate ACC stream started
                 toggleButtonDown(accButton, R.string.stop_acc_stream)
+                // Request ACC stream settings and start streaming
                 accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-                    .flatMap { settings: PolarSensorSetting ->
-                        api.startAccStreaming(deviceId, settings)
-                    }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarAccelerometerData: PolarAccelerometerData ->
-                            for (data in polarAccelerometerData.samples) {
-                                Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
-                            }
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(accButton, R.string.start_acc_stream)
-                            Log.e(TAG, "ACC stream failed. Reason $error")
-                        },
-                        {
-                            showToast("ACC stream complete")
-                            Log.d(TAG, "ACC stream complete")
+                        .flatMap { settings: PolarSensorSetting ->
+                            api.startAccStreaming(deviceId, settings)
                         }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { polarAccelerometerData: PolarAccelerometerData ->
+                                    // Log ACC data samples
+                                    for (data in polarAccelerometerData.samples) {
+                                        Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
+                                    }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate ACC stream stopped
+                                    toggleButtonUp(accButton, R.string.start_acc_stream)
+                                    // Log error if ACC stream failed
+                                    Log.e(TAG, "ACC stream failed. Reason $error")
+                                },
+                                {
+                                    // Show toast message and log completion
+                                    showToast("ACC stream complete")
+                                    Log.d(TAG, "ACC stream complete")
+                                }
+                        )
             } else {
+                // Toggle button state to indicate ACC stream stopped
                 toggleButtonUp(accButton, R.string.start_acc_stream)
-                // NOTE dispose will stop streaming if it is "running"
+                // Dispose the accDisposable to stop streaming if it's running
                 accDisposable?.dispose()
             }
         }
 
+// Set OnClickListener for gyrButton
         gyrButton.setOnClickListener {
+            // Check if gyrDisposable is disposed or not initialized
             val isDisposed = gyrDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate GYR stream started
                 toggleButtonDown(gyrButton, R.string.stop_gyro_stream)
-                gyrDisposable =
-                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.GYRO)
+                // Request GYR stream settings and start streaming
+                gyrDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.GYRO)
                         .flatMap { settings: PolarSensorSetting ->
                             api.startGyroStreaming(deviceId, settings)
                         }
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
-                            { polarGyroData: PolarGyroData ->
-                                for (data in polarGyroData.samples) {
-                                    Log.d(TAG, "GYR    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
-                                }
-                            },
-                            { error: Throwable ->
-                                toggleButtonUp(gyrButton, R.string.start_gyro_stream)
-                                Log.e(TAG, "GYR stream failed. Reason $error")
-                            },
-                            { Log.d(TAG, "GYR stream complete") }
+                                { polarGyroData: PolarGyroData ->
+                                    // Log GYR data samples
+                                    for (data in polarGyroData.samples) {
+                                        Log.d(TAG, "GYR    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
+                                    }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate GYR stream stopped
+                                    toggleButtonUp(gyrButton, R.string.start_gyro_stream)
+                                    // Log error if GYR stream failed
+                                    Log.e(TAG, "GYR stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "GYR stream complete") }
                         )
             } else {
+                // Toggle button state to indicate GYR stream stopped
                 toggleButtonUp(gyrButton, R.string.start_gyro_stream)
-                // NOTE dispose will stop streaming if it is "running"
+                // Dispose the gyrDisposable to stop streaming if it's running
                 gyrDisposable?.dispose()
             }
         }
