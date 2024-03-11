@@ -1044,23 +1044,24 @@ class MainActivity : AppCompatActivity() {
                     )
         }
 
+        // Set OnClickListener for changePpiModeLedAnimationStatusButton
         changePpiModeLedAnimationStatusButton.setOnClickListener {
             api.setLedConfig(deviceId, LedConfig(
-                sdkModeLedEnabled = !enableSdkModelLedAnimation,
-                ppiModeLedEnabled = enablePpiModeLedAnimation))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        Log.d(TAG, "PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
-                        showToast("PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
-                        changePpiModeLedAnimationStatusButton.text =
-                            if (enablePpiModeLedAnimation) getString(R.string.disable_ppi_mode_led_animation) else getString(
-                                R.string.enable_ppi_mode_led_animation
-                            )
-                        enablePpiModeLedAnimation = !enablePpiModeLedAnimation
-                    },
-                    { error: Throwable -> Log.e(TAG, "changePpiModeLedAnimationStatus failed: $error") }
-                )
+                    sdkModeLedEnabled = !enableSdkModelLedAnimation,
+                    ppiModeLedEnabled = enablePpiModeLedAnimation))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            {
+                                Log.d(TAG, "PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
+                                showToast("PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
+                                changePpiModeLedAnimationStatusButton.text =
+                                        if (enablePpiModeLedAnimation) getString(R.string.disable_ppi_mode_led_animation) else getString(
+                                                R.string.enable_ppi_mode_led_animation
+                                        )
+                                enablePpiModeLedAnimation = !enablePpiModeLedAnimation
+                            },
+                            { error: Throwable -> Log.e(TAG, "changePpiModeLedAnimationStatus failed: $error") }
+                    )
         }
 
         doFactoryResetButton.setOnClickListener {
