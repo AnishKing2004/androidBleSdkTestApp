@@ -257,38 +257,52 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for autoConnectButton
         autoConnectButton.setOnClickListener {
+            // Check if autoConnectDisposable is not null
             if (autoConnectDisposable != null) {
+                // Dispose the autoConnectDisposable if it's not null
                 autoConnectDisposable?.dispose()
             }
+            // Start auto-connecting to devices
             autoConnectDisposable = api.autoConnectToDevice(-60, "180D", null)
-                .subscribe(
-                    { Log.d(TAG, "auto connect search complete") },
-                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                )
+                    .subscribe(
+                            { Log.d(TAG, "auto connect search complete") },
+                            { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
+                    )
         }
 
+// Set OnClickListener for scanButton
         scanButton.setOnClickListener {
+            // Check if scanDisposable is disposed or not initialized
             val isDisposed = scanDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Start scanning for devices
                 toggleButtonDown(scanButton, R.string.scanning_devices)
                 scanDisposable = api.searchForDevice()
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarDeviceInfo: PolarDeviceInfo ->
-                            Log.d(TAG, "polar device found id: " + polarDeviceInfo.deviceId + " address: " + polarDeviceInfo.address + " rssi: " + polarDeviceInfo.rssi + " name: " + polarDeviceInfo.name + " isConnectable: " + polarDeviceInfo.isConnectable)
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(scanButton, "Scan devices")
-                            Log.e(TAG, "Device scan failed. Reason $error")
-                        },
-                        {
-                            toggleButtonUp(scanButton, "Scan devices")
-                            Log.d(TAG, "complete")
-                        }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { polarDeviceInfo: PolarDeviceInfo ->
+                                    // Log information about found Polar device
+                                    Log.d(TAG, "polar device found id: " + polarDeviceInfo.deviceId + " address: " + polarDeviceInfo.address + " rssi: " + polarDeviceInfo.rssi + " name: " + polarDeviceInfo.name + " isConnectable: " + polarDeviceInfo.isConnectable)
+                                },
+                                { error: Throwable ->
+                                    // Toggle scanButton state to indicate scanning stopped
+                                    toggleButtonUp(scanButton, "Scan devices")
+                                    // Log error if device scan failed
+                                    Log.e(TAG, "Device scan failed. Reason $error")
+                                },
+                                {
+                                    // Toggle scanButton state to indicate scanning stopped
+                                    toggleButtonUp(scanButton, "Scan devices")
+                                    // Log completion
+                                    Log.d(TAG, "complete")
+                                }
+                        )
             } else {
+                // Toggle scanButton state to indicate scanning stopped
                 toggleButtonUp(scanButton, "Scan devices")
+                // Dispose the scanDisposable
                 scanDisposable?.dispose()
             }
         }
