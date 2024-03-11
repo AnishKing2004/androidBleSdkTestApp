@@ -736,41 +736,50 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for readH10RecordingStatusButton
         readH10RecordingStatusButton.setOnClickListener {
+            // Check if recordingStatusReadDisposable is disposed or not initialized
             val isDisposed = recordingStatusReadDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Request recording status
                 recordingStatusReadDisposable = api.requestRecordingStatus(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { pair: Pair<Boolean, String> ->
-                            val recordingOn = pair.first
-                            val recordingId = pair.second
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { pair: Pair<Boolean, String> ->
+                                    // Extract recordingOn and recordingId from the pair
+                                    val recordingOn = pair.first
+                                    val recordingId = pair.second
 
-                            val recordingStatus = if (!recordingOn && recordingId.isEmpty()) {
-                                "H10 Recording is OFF"
-                            } else if (!recordingOn && recordingId.isNotEmpty()) {
-                                "H10 Recording is OFF.\n\n" +
-                                        "Exercise id $recordingId is currently found on H10 memory"
-                            } else if (recordingOn && recordingId.isNotEmpty()) {
-                                "H10 Recording is ON.\n\n" +
-                                        "Exercise id $recordingId recording ongoing"
-                            } else if (recordingOn && recordingId.isEmpty()) {
-                                // This state is undefined. If recording is currently ongoing the H10 must return id of the recording
-                                "H10 Recording state UNDEFINED"
-                            } else {
-                                // This state is unreachable and should never happen
-                                "H10 recording state ERROR"
-                            }
-                            Log.d(TAG, recordingStatus)
-                            showDialog("Recording status", recordingStatus)
-                        },
-                        { error: Throwable ->
-                            val recordingStatusReadError = "Recording status read failed. Reason: $error"
-                            Log.e(TAG, recordingStatusReadError)
-                            showSnackbar(recordingStatusReadError)
-                        }
-                    )
+                                    // Determine the recording status message based on the received data
+                                    val recordingStatus = if (!recordingOn && recordingId.isEmpty()) {
+                                        "H10 Recording is OFF"
+                                    } else if (!recordingOn && recordingId.isNotEmpty()) {
+                                        "H10 Recording is OFF.\n\n" +
+                                                "Exercise id $recordingId is currently found on H10 memory"
+                                    } else if (recordingOn && recordingId.isNotEmpty()) {
+                                        "H10 Recording is ON.\n\n" +
+                                                "Exercise id $recordingId recording ongoing"
+                                    } else if (recordingOn && recordingId.isEmpty()) {
+                                        // This state is undefined. If recording is currently ongoing the H10 must return id of the recording
+                                        "H10 Recording state UNDEFINED"
+                                    } else {
+                                        // This state is unreachable and should never happen
+                                        "H10 recording state ERROR"
+                                    }
+
+                                    // Log and show the recording status message in a dialog
+                                    Log.d(TAG, recordingStatus)
+                                    showDialog("Recording status", recordingStatus)
+                                },
+                                { error: Throwable ->
+                                    // Log and show error message if recording status read failed
+                                    val recordingStatusReadError = "Recording status read failed. Reason: $error"
+                                    Log.e(TAG, recordingStatusReadError)
+                                    showSnackbar(recordingStatusReadError)
+                                }
+                        )
             } else {
+                // Log if recording status request is already in progress
                 Log.d(TAG, "Recording status request is already in progress at the moment.")
             }
         }
