@@ -307,54 +307,70 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for hrButton
         hrButton.setOnClickListener {
+            // Check if hrDisposable is disposed or not initialized
             val isDisposed = hrDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate HR stream started
                 toggleButtonDown(hrButton, R.string.stop_hr_stream)
+                // Start HR streaming
                 hrDisposable = api.startHrStreaming(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { hrData: PolarHrData ->
-                            for (sample in hrData.samples) {
-                                Log.d(TAG, "HR     bpm: ${sample.hr} rrs: ${sample.rrsMs} rrAvailable: ${sample.rrAvailable} contactStatus: ${sample.contactStatus} contactStatusSupported: ${sample.contactStatusSupported}")
-                            }
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(hrButton, R.string.start_hr_stream)
-                            Log.e(TAG, "HR stream failed. Reason $error")
-                        },
-                        { Log.d(TAG, "HR stream complete") }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { hrData: PolarHrData ->
+                                    // Log HR data samples
+                                    for (sample in hrData.samples) {
+                                        Log.d(TAG, "HR     bpm: ${sample.hr} rrs: ${sample.rrsMs} rrAvailable: ${sample.rrAvailable} contactStatus: ${sample.contactStatus} contactStatusSupported: ${sample.contactStatusSupported}")
+                                    }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate HR stream stopped
+                                    toggleButtonUp(hrButton, R.string.start_hr_stream)
+                                    // Log error if HR stream failed
+                                    Log.e(TAG, "HR stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "HR stream complete") }
+                        )
             } else {
+                // Toggle button state to indicate HR stream stopped
                 toggleButtonUp(hrButton, R.string.start_hr_stream)
-                // NOTE dispose will stop streaming if it is "running"
+                // Dispose the hrDisposable to stop streaming if it's running
                 hrDisposable?.dispose()
             }
         }
 
+// Set OnClickListener for ecgButton
         ecgButton.setOnClickListener {
+            // Check if ecgDisposable is disposed or not initialized
             val isDisposed = ecgDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate ECG stream started
                 toggleButtonDown(ecgButton, R.string.stop_ecg_stream)
+                // Request ECG stream settings and start streaming
                 ecgDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ECG)
-                    .flatMap { settings: PolarSensorSetting ->
-                        api.startEcgStreaming(deviceId, settings)
-                    }
-                    .subscribe(
-                        { polarEcgData: PolarEcgData ->
-                            for (data in polarEcgData.samples) {
-                                Log.d(TAG, "    yV: ${data.voltage} timeStamp: ${data.timeStamp}")
-                            }
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(ecgButton, R.string.start_ecg_stream)
-                            Log.e(TAG, "ECG stream failed. Reason $error")
-                        },
-                        { Log.d(TAG, "ECG stream complete") }
-                    )
+                        .flatMap { settings: PolarSensorSetting ->
+                            api.startEcgStreaming(deviceId, settings)
+                        }
+                        .subscribe(
+                                { polarEcgData: PolarEcgData ->
+                                    // Log ECG data samples
+                                    for (data in polarEcgData.samples) {
+                                        Log.d(TAG, "    yV: ${data.voltage} timeStamp: ${data.timeStamp}")
+                                    }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate ECG stream stopped
+                                    toggleButtonUp(ecgButton, R.string.start_ecg_stream)
+                                    // Log error if ECG stream failed
+                                    Log.e(TAG, "ECG stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "ECG stream complete") }
+                        )
             } else {
+                // Toggle button state to indicate ECG stream stopped
                 toggleButtonUp(ecgButton, R.string.start_ecg_stream)
-                // NOTE stops streaming if it is "running"
+                // Dispose the ecgDisposable to stop streaming if it's running
                 ecgDisposable?.dispose()
             }
         }
