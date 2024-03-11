@@ -1009,16 +1009,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for getDiskSpaceButton
         getDiskSpaceButton.setOnClickListener {
             api.getDiskSpace(deviceId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { diskSpace ->
-                        Log.d(TAG, "disk space: $diskSpace")
-                        showToast("Disk space left: ${diskSpace.freeSpace}/${diskSpace.totalSpace} Bytes")
-                    },
-                    { error: Throwable -> Log.e(TAG, "get disk space failed: $error") }
-                )
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            { diskSpace ->
+                                Log.d(TAG, "disk space: $diskSpace")
+                                showToast("Disk space left: ${diskSpace.freeSpace}/${diskSpace.totalSpace} Bytes")
+                            },
+                            { error: Throwable -> Log.e(TAG, "get disk space failed: $error") }
+                    )
         }
 
         var enableSdkModelLedAnimation = false
