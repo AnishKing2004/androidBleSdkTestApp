@@ -1064,16 +1064,17 @@ class MainActivity : AppCompatActivity() {
                     )
         }
 
+        // Set OnClickListener for doFactoryResetButton
         doFactoryResetButton.setOnClickListener {
             api.doFactoryReset(deviceId, preservePairingInformation = true)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        Log.d(TAG, "send do factory reset to device")
-                        showToast("send do factory reset to device")
-                    },
-                    { error: Throwable -> Log.e(TAG, "doFactoryReset() failed: $error") }
-                )
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            {
+                                Log.d(TAG, "send do factory reset to device")
+                                showToast("send do factory reset to device")
+                            },
+                            { error: Throwable -> Log.e(TAG, "doFactoryReset() failed: $error") }
+                    )
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
