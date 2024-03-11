@@ -524,27 +524,35 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for ppiButton
         ppiButton.setOnClickListener {
+            // Check if ppiDisposable is disposed or not initialized
             val isDisposed = ppiDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate PPI stream started
                 toggleButtonDown(ppiButton, R.string.stop_ppi_stream)
+                // Start PPI streaming
                 ppiDisposable = api.startPpiStreaming(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { ppiData: PolarPpiData ->
-                            for (sample in ppiData.samples) {
-                                Log.d(TAG, "PPI    ppi: ${sample.ppi} blocker: ${sample.blockerBit} errorEstimate: ${sample.errorEstimate}")
-                            }
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(ppiButton, R.string.start_ppi_stream)
-                            Log.e(TAG, "PPI stream failed. Reason $error")
-                        },
-                        { Log.d(TAG, "PPI stream complete") }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { ppiData: PolarPpiData ->
+                                    // Log PPI data samples
+                                    for (sample in ppiData.samples) {
+                                        Log.d(TAG, "PPI    ppi: ${sample.ppi} blocker: ${sample.blockerBit} errorEstimate: ${sample.errorEstimate}")
+                                    }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate PPI stream stopped
+                                    toggleButtonUp(ppiButton, R.string.start_ppi_stream)
+                                    // Log error if PPI stream failed
+                                    Log.e(TAG, "PPI stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "PPI stream complete") }
+                        )
             } else {
+                // Toggle button state to indicate PPI stream stopped
                 toggleButtonUp(ppiButton, R.string.start_ppi_stream)
-                // NOTE dispose will stop streaming if it is "running"
+                // Dispose the ppiDisposable to stop streaming if it's running
                 ppiDisposable?.dispose()
             }
         }
