@@ -820,26 +820,31 @@ class MainActivity : AppCompatActivity() {
                     )
         }
 
+        // Set OnClickListener for listRecordingsButton
         listRecordingsButton.setOnClickListener {
+            // List offline recordings from the device
             api.listOfflineRecordings(deviceId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe {
-                    entryCache[deviceId] = mutableListOf()
-                }
-                .map {
-                    entryCache[deviceId]?.add(it)
-                    it
-                }
-                .subscribe(
-                    { polarOfflineRecordingEntry: PolarOfflineRecordingEntry ->
-                        Log.d(
-                            TAG,
-                            "next: ${polarOfflineRecordingEntry.date} path: ${polarOfflineRecordingEntry.path} size: ${polarOfflineRecordingEntry.size}"
-                        )
-                    },
-                    { error: Throwable -> Log.e(TAG, "Failed to list recordings: $error") },
-                    { Log.d(TAG, "list recordings complete") }
-                )
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSubscribe {
+                        // Initialize or clear entryCache for the device
+                        entryCache[deviceId] = mutableListOf()
+                    }
+                    .map {
+                        // Add each recording entry to the entryCache
+                        entryCache[deviceId]?.add(it)
+                        it
+                    }
+                    .subscribe(
+                            { polarOfflineRecordingEntry: PolarOfflineRecordingEntry ->
+                                // Log recording entry information
+                                Log.d(
+                                        TAG,
+                                        "next: ${polarOfflineRecordingEntry.date} path: ${polarOfflineRecordingEntry.path} size: ${polarOfflineRecordingEntry.size}"
+                                )
+                            },
+                            { error: Throwable -> Log.e(TAG, "Failed to list recordings: $error") },
+                            { Log.d(TAG, "List recordings complete") }
+                    )
         }
 
         startRecordingButton.setOnClickListener {
