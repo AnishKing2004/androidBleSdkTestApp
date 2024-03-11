@@ -234,7 +234,7 @@ class MainActivity : AppCompatActivity() {
         // Set the text of the connectButton to indicate connecting to the specified device
         connectButton.text = getString(R.string.connect_to_device, deviceId)
 
-// Set an OnClickListener for the connectButton
+        // Set an OnClickListener for the connectButton
         connectButton.setOnClickListener {
             try {
                 // Check if device is already connected
@@ -272,7 +272,7 @@ class MainActivity : AppCompatActivity() {
                     )
         }
 
-// Set OnClickListener for scanButton
+        // Set OnClickListener for scanButton
         scanButton.setOnClickListener {
             // Check if scanDisposable is disposed or not initialized
             val isDisposed = scanDisposable?.isDisposed ?: true
@@ -340,7 +340,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-// Set OnClickListener for ecgButton
+        // Set OnClickListener for ecgButton
         ecgButton.setOnClickListener {
             // Check if ecgDisposable is disposed or not initialized
             val isDisposed = ecgDisposable?.isDisposed ?: true
@@ -415,7 +415,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-// Set OnClickListener for gyrButton
+        // Set OnClickListener for gyrButton
         gyrButton.setOnClickListener {
             // Check if gyrDisposable is disposed or not initialized
             val isDisposed = gyrDisposable?.isDisposed ?: true
@@ -451,61 +451,75 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for magButton
         magButton.setOnClickListener {
+            // Check if magDisposable is disposed or not initialized
             val isDisposed = magDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate MAG stream started
                 toggleButtonDown(magButton, R.string.stop_mag_stream)
-                magDisposable =
-                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.MAGNETOMETER)
+                // Request MAG stream settings and start streaming
+                magDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.MAGNETOMETER)
                         .flatMap { settings: PolarSensorSetting ->
                             api.startMagnetometerStreaming(deviceId, settings)
                         }
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
-                            { polarMagData: PolarMagnetometerData ->
-                                for (data in polarMagData.samples) {
-                                    Log.d(TAG, "MAG    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
-                                }
-                            },
-                            { error: Throwable ->
-                                toggleButtonUp(magButton, R.string.start_mag_stream)
-                                Log.e(TAG, "MAGNETOMETER stream failed. Reason $error")
-                            },
-                            { Log.d(TAG, "MAGNETOMETER stream complete") }
+                                { polarMagData: PolarMagnetometerData ->
+                                    // Log MAG data samples
+                                    for (data in polarMagData.samples) {
+                                        Log.d(TAG, "MAG    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
+                                    }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate MAG stream stopped
+                                    toggleButtonUp(magButton, R.string.start_mag_stream)
+                                    // Log error if MAG stream failed
+                                    Log.e(TAG, "MAGNETOMETER stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "MAGNETOMETER stream complete") }
                         )
             } else {
+                // Toggle button state to indicate MAG stream stopped
                 toggleButtonUp(magButton, R.string.start_mag_stream)
-                // NOTE dispose will stop streaming if it is "running"
+                // Dispose the magDisposable to stop streaming if it's running
                 magDisposable!!.dispose()
             }
         }
 
+        // Set OnClickListener for ppgButton
         ppgButton.setOnClickListener {
+            // Check if ppgDisposable is disposed or not initialized
             val isDisposed = ppgDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Toggle button state to indicate PPG stream started
                 toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
-                ppgDisposable =
-                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
+                // Request PPG stream settings and start streaming
+                ppgDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
                         .flatMap { settings: PolarSensorSetting ->
                             api.startPpgStreaming(deviceId, settings)
                         }
                         .subscribe(
-                            { polarPpgData: PolarPpgData ->
-                                if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
-                                    for (data in polarPpgData.samples) {
-                                        Log.d(TAG, "PPG    ppg0: ${data.channelSamples[0]} ppg1: ${data.channelSamples[1]} ppg2: ${data.channelSamples[2]} ambient: ${data.channelSamples[3]} timeStamp: ${data.timeStamp}")
+                                { polarPpgData: PolarPpgData ->
+                                    // Log PPG data samples if it's of type PPG3_AMBIENT1
+                                    if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
+                                        for (data in polarPpgData.samples) {
+                                            Log.d(TAG, "PPG    ppg0: ${data.channelSamples[0]} ppg1: ${data.channelSamples[1]} ppg2: ${data.channelSamples[2]} ambient: ${data.channelSamples[3]} timeStamp: ${data.timeStamp}")
+                                        }
                                     }
-                                }
-                            },
-                            { error: Throwable ->
-                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                                Log.e(TAG, "PPG stream failed. Reason $error")
-                            },
-                            { Log.d(TAG, "PPG stream complete") }
+                                },
+                                { error: Throwable ->
+                                    // Toggle button state to indicate PPG stream stopped
+                                    toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+                                    // Log error if PPG stream failed
+                                    Log.e(TAG, "PPG stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "PPG stream complete") }
                         )
             } else {
+                // Toggle button state to indicate PPG stream stopped
                 toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                // NOTE dispose will stop streaming if it is "running"
+                // Dispose the ppgDisposable to stop streaming if it's running
                 ppgDisposable?.dispose()
             }
         }
