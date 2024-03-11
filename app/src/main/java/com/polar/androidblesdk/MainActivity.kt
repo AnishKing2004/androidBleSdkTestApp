@@ -675,50 +675,63 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Set OnClickListener for startH10RecordingButton
         startH10RecordingButton.setOnClickListener {
+            // Check if recordingStartStopDisposable is disposed or not initialized
             val isDisposed = recordingStartStopDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Define recordIdentifier for the recording
                 val recordIdentifier = "TEST_APP_ID"
+                // Start recording
                 recordingStartStopDisposable = api.startRecording(deviceId, recordIdentifier, PolarH10OfflineExerciseApi.RecordingInterval.INTERVAL_1S, PolarH10OfflineExerciseApi.SampleType.HR)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            val recordingStartOk = "Recording started with id $recordIdentifier"
-                            Log.d(TAG, recordingStartOk)
-                            showSnackbar(recordingStartOk)
-                        },
-                        { error: Throwable ->
-                            val title = "Recording start failed with id $recordIdentifier"
-                            val message = "Possible reasons are, the recording is already started on the device or there is exercise recorded on H10. " +
-                                    "H10 can have one recording in the memory at the time.\n\n" +
-                                    "Detailed Reason: $error"
-                            Log.e(TAG, "Recording start failed with id $recordIdentifier. Reason: $error")
-                            showDialog(title, message)
-                        }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                {
+                                    // Log and show message for successful recording start
+                                    val recordingStartOk = "Recording started with id $recordIdentifier"
+                                    Log.d(TAG, recordingStartOk)
+                                    showSnackbar(recordingStartOk)
+                                },
+                                { error: Throwable ->
+                                    // Log and show error message if recording start failed
+                                    val title = "Recording start failed with id $recordIdentifier"
+                                    val message = "Possible reasons are, the recording is already started on the device or there is exercise recorded on H10. " +
+                                            "H10 can have one recording in the memory at the time.\n\n" +
+                                            "Detailed Reason: $error"
+                                    Log.e(TAG, "Recording start failed with id $recordIdentifier. Reason: $error")
+                                    showDialog(title, message)
+                                }
+                        )
             } else {
+                // Log if recording start or stop request is already in progress
                 Log.d(TAG, "Recording start or stop request is already in progress at the moment.")
             }
         }
 
+        // Set OnClickListener for stopH10RecordingButton
         stopH10RecordingButton.setOnClickListener {
+            // Check if recordingStartStopDisposable is disposed or not initialized
             val isDisposed = recordingStartStopDisposable?.isDisposed ?: true
             if (isDisposed) {
+                // Stop recording
                 recordingStartStopDisposable = api.stopRecording(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            val recordingStopOk = "Recording stopped"
-                            Log.d(TAG, recordingStopOk)
-                            showSnackbar(recordingStopOk)
-                        },
-                        { error: Throwable ->
-                            val recordingStopError = "Recording stop failed. Reason: $error"
-                            Log.e(TAG, recordingStopError)
-                            showSnackbar(recordingStopError)
-                        }
-                    )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                {
+                                    // Log and show message for successful recording stop
+                                    val recordingStopOk = "Recording stopped"
+                                    Log.d(TAG, recordingStopOk)
+                                    showSnackbar(recordingStopOk)
+                                },
+                                { error: Throwable ->
+                                    // Log and show error message if recording stop failed
+                                    val recordingStopError = "Recording stop failed. Reason: $error"
+                                    Log.e(TAG, recordingStopError)
+                                    showSnackbar(recordingStopError)
+                                }
+                        )
             } else {
+                // Log if recording start or stop request is already in progress
                 Log.d(TAG, "Recording start or stop request is already in progress at the moment.")
             }
         }
